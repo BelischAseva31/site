@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mavi - O Ariyo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --border-color: #e0e0e0;
+            --card-bg: #ffffff;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --play-bg: rgba(0, 0, 0, 0.7);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #1a1a1a;
+                --bg-secondary: #2d2d2d;
+                --text-primary: #ffffff;
+                --text-secondary: #b3b3b3;
+                --border-color: #404040;
+                --card-bg: #2d2d2d;
+                --shadow: rgba(0, 0, 0, 0.3);
+                --play-bg: rgba(255, 255, 255, 0.9);
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .background-blur {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-image: url('https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1200&h=800&fit=crop&crop=center');
+            background-size: cover;
+            background-position: center;
+            filter: blur(20px);
+            opacity: 0.3;
+            transform: scale(1.1);
+        }
+
+        .container {
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .album-cover {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin: 0 auto 30px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px var(--shadow);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .album-cover:hover {
+            transform: scale(1.05);
+        }
+
+        .album-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .play-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 15px;
+            color: white;
+            border-radius: 20px;
+        }
+
+        .play-overlay.active {
+            display: flex;
+        }
+
+        .track-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            width: 100%;
+        }
+
+        .artist-track {
+            text-align: left;
+        }
+
+        .artist-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+            opacity: 0.9;
+        }
+
+        .track-name {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .time-display {
+            font-size: 14px;
+            font-weight: 600;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .play-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            flex: 1;
+            margin-top: -20px;
+        }
+
+        .control-button {
+            width: 47px;
+            height: 47px;
+            background: rgba(0, 0, 0, 0.4);
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+            color: white;
+            font-weight: bold;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-button:hover {
+            background: rgba(0, 0, 0, 0.6);
+            transform: scale(1.05);
+        }
+
+        .play-button {
+            width: 57px;
+            height: 57px;
+            background: rgba(0, 0, 0, 0.4);
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 24px;
+            color: white;
+            font-weight: bold;
+            backdrop-filter: blur(10px);
+        }
+
+        .play-button:hover {
+            background: rgba(0, 0, 0, 0.6);
+            transform: scale(1.08);
+        }
+
+        .album-info h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .album-info p {
+            font-size: 18px;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+        }
+
+        .platforms {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .platform {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px 20px;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .platform:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--shadow);
+        }
+
+        .platform-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .platform-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+        }
+
+        .spotify { background: #1DB954; }
+        .apple { background: #FA243C; }
+        .youtube { background: #FF0000; }
+        .deezer { background: #A238FF; }
+        .soundcloud { background: #FF5500; }
+        .itunes { background: #FA243C; }
+
+        .platform-name {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .play-btn {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .download-btn {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .audio-player {
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                max-width: 350px;
+            }
+            
+            .album-cover {
+                width: 240px;
+                height: 240px;
+            }
+            
+            .album-info h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-blur"></div>
+    <div class="container">
+        <div class="album-cover" onclick="togglePreview()">
+            <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop&crop=center" alt="Mavi - O Ariyo">
+            <div class="play-overlay" id="playOverlay">
+                <div class="track-info">
+                    <div class="artist-track">
+                        <div class="artist-name">Mavi</div>
+                        <div class="track-name">O Ariyo</div>
+                    </div>
+                    <div class="time-display" id="timeDisplay">0:00</div>
+                </div>
+                <div class="play-control">
+                    <button class="control-button" onclick="previousTrack()" id="prevBtn">⏮</button>
+                    <button class="play-button" onclick="togglePlay()" id="playBtn">▶</button>
+                    <button class="control-button" onclick="nextTrack()" id="nextBtn">⏭</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="album-info">
+            <h1 id="albumTitle">O Ariyo</h1>
+            <p>Müzik dinleme platformunu seçin</p>
+        </div>
+
+        <div class="platforms">
+            <a href="https://open.spotify.com/album/your-album-id" class="platform" target="_blank">
+                <div class="platform-info">
+                    <div class="platform-icon spotify">♫</div>
+                    <span class="platform-name">Spotify</span>
+                </div>
+                <button class="play-btn">Çal</button>
+            </a>
+
+            <a href="https://music.apple.com/album/your-album-id" class="platform" target="_blank">
+                <div class="platform-info">
+                    <div class="platform-icon apple">♪</div>
+                    <span class="platform-name">Apple Music</span>
+                </div>
+                <button class="play-btn">Çal</button>
+            </a>
+
+            <a href="https://www.youtube.com/watch?v=your-video-id" class="platform" target="_blank">
+                <div class="platform-info">
+                    <div class="platform-icon youtube">▶</div>
+                    <span class="platform-name">YouTube Music</span>
+                </div>
+                <button class="play-btn">Çal</button>
+            </a>
+
+            <a href="https://soundcloud.com/your-album-link" class="platform" target="_blank">
+                <div class="platform-info">
+                    <div class="platform-icon soundcloud">♪</div>
+                    <span class="platform-name">SoundCloud</span>
+                </div>
+                <button class="play-btn">Çal</button>
+            </a>
+        </div>
+
+        <div class="audio-player" id="audioPlayer">
+        </div>
+    </div>
+
+    <audio id="audio" preload="metadata">
+        <!-- Şarkılar buraya eklenecek -->
+    </audio>
+
+    <script>
+        // Albüm şarkıları - buraya kendi şarkılarınızı ekleyin
+        const album = [
+            {
+                title: "O Ariyo",
+                artist: "Mavi",
+                src: "https://www.soundjay.com/misc/sounds/magic-chime-02.mp3" // Kendi dosyanızı buraya ekleyin
+            },
+            {
+                title: "İkinci Şarkı",
+                artist: "Mavi", 
+                src: "https://www.soundjay.com/misc/sounds/magic-chime-02.mp3" // Kendi dosyanızı buraya ekleyin
+            },
+            {
+                title: "Üçüncü Şarkı",
+                artist: "Mavi",
+                src: "https://www.soundjay.com/misc/sounds/magic-chime-02.mp3" // Kendi dosyanızı buraya ekleyin
+            },
+            {
+                title: "Dördüncü Şarkı", 
+                artist: "Mavi",
+                src: "https://www.soundjay.com/misc/sounds/magic-chime-02.mp3" // Kendi dosyanızı buraya ekleyin
+            },
+            {
+                title: "Beşinci Şarkı",
+                artist: "Mavi",
+                src: "https://www.soundjay.com/misc/sounds/magic-chime-02.mp3" // Kendi dosyanızı buraya ekleyin
+            }
+        ];
+
+        const audio = document.getElementById('audio');
+        const playOverlay = document.getElementById('playOverlay');
+        const playBtn = document.getElementById('playBtn');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const artistName = document.querySelector('.artist-name');
+        const trackName = document.querySelector('.track-name');
+        const albumTitle = document.getElementById('albumTitle');
+        
+        let currentTrack = 0;
+        let isPlaying = false;
+        let previewTimeout;
+
+        function loadTrack(index) {
+            const track = album[index];
+            audio.src = track.src;
+            artistName.textContent = track.artist;
+            trackName.textContent = track.title;
+            albumTitle.textContent = track.title;
+            audio.load();
+        }
+
+        function togglePreview() {
+            if (!playOverlay.classList.contains('active')) {
+                playOverlay.classList.add('active');
+                loadTrack(currentTrack);
+                playPreview();
+            }
+        }
+
+        function playPreview() {
+            audio.currentTime = 0;
+            audio.play();
+            isPlaying = true;
+            playBtn.textContent = '⏸';
+            
+            // 30 saniye sonra otomatik durdur
+            previewTimeout = setTimeout(() => {
+                stopPreview();
+            }, 30000);
+        }
+
+        function togglePlay() {
+            event.stopPropagation();
+            if (isPlaying) {
+                audio.pause();
+                isPlaying = false;
+                playBtn.textContent = '▶';
+                if (previewTimeout) {
+                    clearTimeout(previewTimeout);
+                }
+            } else {
+                audio.play();
+                isPlaying = true;
+                playBtn.textContent = '⏸';
+                // Kalan süre için timeout ayarla
+                const remainingTime = 30000 - (audio.currentTime * 1000);
+                previewTimeout = setTimeout(() => {
+                    stopPreview();
+                }, remainingTime);
+            }
+        }
+
+        function nextTrack() {
+            event.stopPropagation();
+            currentTrack = (currentTrack + 1) % album.length;
+            loadTrack(currentTrack);
+            if (isPlaying) {
+                playPreview();
+            }
+        }
+
+        function previousTrack() {
+            event.stopPropagation();
+            currentTrack = (currentTrack - 1 + album.length) % album.length;
+            loadTrack(currentTrack);
+            if (isPlaying) {
+                playPreview();
+            }
+        }
+
+        function stopPreview() {
+            audio.pause();
+            audio.currentTime = 0;
+            isPlaying = false;
+            playBtn.textContent = '▶';
+            timeDisplay.textContent = '0:00';
+            playOverlay.classList.remove('active');
+            if (previewTimeout) {
+                clearTimeout(previewTimeout);
+            }
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        audio.addEventListener('timeupdate', () => {
+            timeDisplay.textContent = formatTime(audio.currentTime);
+        });
+
+        audio.addEventListener('ended', () => {
+            // Şarkı bittiğinde sonraki şarkıya geç
+            nextTrack();
+        });
+
+        // Overlay dışına tıklandığında oynatmayı durdur
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.album-cover') && playOverlay.classList.contains('active')) {
+                stopPreview();
+            }
+        });
+
+        // İlk şarkıyı yükle
+        loadTrack(currentTrack);
+
+        // Platform linklerinin tıklanmasını engellemek için
+        document.querySelectorAll('.platform').forEach(platform => {
+            platform.addEventListener('click', (e) => {
+                e.preventDefault();
+                const href = platform.getAttribute('href');
+                window.open(href, '_blank');
+            });
+        });
+    </script>
+</body>
+</html>
